@@ -1,27 +1,33 @@
 package com.carfolio.auth;
 
-import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
+
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class EmailService {
 
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
 
-    private final JavaMailSender mailSender;
+    private final RestClient restClient;
     private final String fromAddress;
     private final String frontendUrl;
 
-    public EmailService(JavaMailSender mailSender,
+    public EmailService(@Value("${carfolio.brevo.api-key}") String brevoApiKey,
                          @Value("${carfolio.mail.from}") String fromAddress,
                          @Value("${carfolio.frontend-url}") String frontendUrl) {
-        this.mailSender = mailSender;
+        this.restClient = RestClient.builder()
+                .baseUrl("https://api.brevo.com/v3/smtp/email")
+                .defaultHeader("api-key", brevoApiKey)
+                .defaultHeader("Content-Type", "application/json")
+                .defaultHeader("Accept", "application/json")
+                .build();
         this.fromAddress = fromAddress;
         this.frontendUrl = frontendUrl;
     }
@@ -105,13 +111,15 @@ public class EmailService {
 
     private void send(String to, String subject, String text, String html) {
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setTo(to);
-            helper.setFrom(fromAddress);
-            helper.setSubject(subject);
-            helper.setText(text, html);
-            mailSender.send(message);
+            restClient.post()
+                    .body(Map.of(
+                            "sender", Map.of("email", fromAddress, "name", "CarFolio"),
+                            "to", List.of(Map.of("email", to)),
+                            "subject", subject,
+                            "htmlContent", html,
+                            "textContent", text))
+                    .retrieve()
+                    .toBodilessEntity();
         } catch (Exception e) {
             log.warn("Failed to send email to {}: {}", to, e.getMessage());
         }
