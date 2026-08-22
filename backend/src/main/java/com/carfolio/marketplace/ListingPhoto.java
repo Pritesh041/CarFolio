@@ -27,7 +27,7 @@ public class ListingPhoto {
     @JoinColumn(name = "listing_id", nullable = false)
     private Listing listing;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "text")
     private String url;
 
     @Column(nullable = false)

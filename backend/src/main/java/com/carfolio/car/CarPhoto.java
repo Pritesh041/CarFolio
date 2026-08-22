@@ -29,7 +29,7 @@ public class CarPhoto {
     @JoinColumn(name = "car_id", nullable = false)
     private Car car;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "text")
     private String url;
 
     @Column(nullable = false)
