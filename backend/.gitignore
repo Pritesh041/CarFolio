@@ -1,0 +1,6 @@
+target/
+*.iml
+.idea/
+uploads/
+src/main/resources/application-local.yml
+.vscode/

@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: carfolio-postgres
+    environment:
+      POSTGRES_DB: carfolio
+      POSTGRES_USER: carfolio
+      POSTGRES_PASSWORD: carfolio
+    ports:
+      - "5433:5432"
+    volumes:
+      - carfolio_pgdata:/var/lib/postgresql/data
+
+volumes:
+  carfolio_pgdata:
